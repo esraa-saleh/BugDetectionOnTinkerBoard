@@ -6,7 +6,7 @@ Assumes there is a directory with examples
 def main():
 
     # dataDirPath = '/home/esraa/PycharmProjects/radioSignalPestDet/bug_no_bug_examples_small'
-    wordLabelTypes = ['no_bug', 'bug']
+    wordLabelTypes = ['clean', 'bug']
     # wordLabelTypes = ['clean', 'ad', 'slar', 'blar', 'pu']
     #
     # bugNoBugMap = {'clean': 0, 'ad': 1,
