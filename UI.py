@@ -82,7 +82,11 @@ def requestBugCenterFrequency():
 def requestNoBugCenterFrequency():
     return int(raw_input('No bug examples center frequency ---> '))
 
-
+def requestMinMaxFreqOfCategory(category):
+    print "To decide on the range of frequencies of interest for "+category+ ", please enter the following: "
+    minFreq = int(raw_input('Min frequency for '+category+' category: '))
+    maxFreq = int(raw_input('Max frequency for '+category+' category: '))
+    return minFreq, maxFreq
 
 def showPrediction(bugBool):
 

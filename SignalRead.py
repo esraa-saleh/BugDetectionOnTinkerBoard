@@ -77,57 +77,57 @@ def testExtractFileIDs():
 Purpose: given a directory path to spectrograms, get all spectrograms
 Assumes that the label types is what the bug/no bug file names start with
 '''
-def extractSpecsFromIQDir(inDirPath, sampleRate, centerFreqBug, centerFreqNoBug, bugWordLabel, noBugWordLabel):
-    process = "extracting spectrograms"
-    UI.declareProcessStart(process)
-    allFiles = os.listdir(inDirPath)
-
-    specs = []
-    timeLists = []
-    freqLists = []
-
-    minFreqBug = 0
-    maxFreqBug = 0
-    minFreqNoBug = 0
-    maxFreqNoBug = 0
-
-    for i in range(len(allFiles)):
-        print "extracting spectrogram of file: ", allFiles[i]
-        # s, f, t = extractSpecFromIQFile(inDirPath + "/" + allFiles[i], sampleRate, centerFreq)
-
-        if(allFiles[i].startswith(bugWordLabel)):
-            s, f, t = extractSpecFromIQFile(inDirPath + "/" + allFiles[i], sampleRate, centerFreqBug)
-            if(minFreqBug ==0 and maxFreqBug ==0):
-                minFreqBug = int(raw_input("Min : "))
-                maxFreqBug = int(raw_input("Max : "))
-
-            ind, = np.where((f >= minFreqBug) & (f <= maxFreqBug))
-
-        elif(allFiles[i].startswith(noBugWordLabel)):
-            s, f, t = extractSpecFromIQFile(inDirPath + "/" + allFiles[i], sampleRate, centerFreqNoBug)
-            if(minFreqNoBug ==0 and maxFreqNoBug ==0):
-                minFreqNoBug = int(raw_input("Min : "))
-                maxFreqNoBug = int(raw_input("Max : "))
-
-            ind, = np.where((f >= minFreqNoBug) & (f <= maxFreqNoBug))
-
-        else:
-            print "Error: None of the IQ files starts with the given category labels, ",bugWordLabel, ", ", noBugWordLabel
-            exit(1)
-
-
-        s = s[ind[0]:ind[len(ind)-1], :]
-        f = f[ind[0]: ind[len(ind)-1]]
-        print f
-        specs.append(s)
-        timeLists.append(t)
-        freqLists.append(f)
-
-    UI.declareProcessDone(process)
-    wordLabels = [bugWordLabel, noBugWordLabel]
-    labels = extractSpecNumLabelsFromFiles(allFiles, wordLabels)
-    ids = extractFileIDs(allFiles)
-    return specs, freqLists, timeLists, labels, ids
+# def extractSpecsFromIQDir(inDirPath, sampleRate, centerFreqBug, centerFreqNoBug, bugWordLabel, noBugWordLabel):
+#     process = "extracting spectrograms"
+#     UI.declareProcessStart(process)
+#     allFiles = os.listdir(inDirPath)
+#
+#     specs = []
+#     timeLists = []
+#     freqLists = []
+#
+#     minFreqBug = 0
+#     maxFreqBug = 0
+#     minFreqNoBug = 0
+#     maxFreqNoBug = 0
+#
+#     for i in range(len(allFiles)):
+#         print "extracting spectrogram of file: ", allFiles[i]
+#         # s, f, t = extractSpecFromIQFile(inDirPath + "/" + allFiles[i], sampleRate, centerFreq)
+#
+#         if(allFiles[i].startswith(bugWordLabel)):
+#             s, f, t = extractSpecFromIQFile(inDirPath + "/" + allFiles[i], sampleRate, centerFreqBug)
+#             if(minFreqBug ==0 and maxFreqBug ==0):
+#                 minFreqBug = int(raw_input("Min : "))
+#                 maxFreqBug = int(raw_input("Max : "))
+#
+#             ind, = np.where((f >= minFreqBug) & (f <= maxFreqBug))
+#
+#         elif(allFiles[i].startswith(noBugWordLabel)):
+#             s, f, t = extractSpecFromIQFile(inDirPath + "/" + allFiles[i], sampleRate, centerFreqNoBug)
+#             if(minFreqNoBug ==0 and maxFreqNoBug ==0):
+#                 minFreqNoBug = int(raw_input("Min : "))
+#                 maxFreqNoBug = int(raw_input("Max : "))
+#
+#             ind, = np.where((f >= minFreqNoBug) & (f <= maxFreqNoBug))
+#
+#         else:
+#             print "Error: None of the IQ files starts with the given category labels, ",bugWordLabel, ", ", noBugWordLabel
+#             exit(1)
+#
+#
+#         s = s[ind[0]:ind[len(ind)-1], :]
+#         f = f[ind[0]: ind[len(ind)-1]]
+#         print f
+#         specs.append(s)
+#         timeLists.append(t)
+#         freqLists.append(f)
+#
+#     UI.declareProcessDone(process)
+#     wordLabels = [bugWordLabel, noBugWordLabel]
+#     labels = extractSpecNumLabelsFromFiles(allFiles, wordLabels)
+#     ids = extractFileIDs(allFiles)
+#     return specs, freqLists, timeLists, labels, ids
 
 # def testExtractSpecsFromIQDir():
 #     inDirPath = '/home/esraa/PycharmProjects/radioSignalPestDet/BugDetectorProgram/simulationExamplesIQ'

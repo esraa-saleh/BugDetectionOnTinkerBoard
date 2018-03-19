@@ -112,15 +112,15 @@ def extractResWithCenterOfMassMultSpecs(specs, freqLists):
         allSeries.append(centerOfMassMethodSeries(spec=specs[i], freqList=freqLists[i]))
     UI.declareProcessDone(process)
     return allSeries
-
-def extractResWithFitMultSpecs(specs, freqLists, spreadDenom):
-    process = 'extracting series from every spectrogram given...'
-    UI.declareProcessStart(process)
-    allSeries = []
-    for i in range(len(specs)):
-        allSeries.append(extractResonantWithFit(specs[i], freqLists[i], spreadDenom))
-    UI.declareProcessDone(process)
-    return allSeries
+#
+# def extractResWithFitMultSpecs(specs, freqLists, spreadDenom):
+#     process = 'extracting series from every spectrogram given...'
+#     UI.declareProcessStart(process)
+#     allSeries = []
+#     for i in range(len(specs)):
+#         allSeries.append(extractResonantWithFit(specs[i], freqLists[i], spreadDenom))
+#     UI.declareProcessDone(process)
+#     return allSeries
 
 # 4 2500000 1 303000000 40
 def plotFitsTest():

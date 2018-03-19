@@ -25,10 +25,35 @@ def writeSignal(currFile, sampleRate, timeSignal, centerFreq, gain):
         totalNumSamples) +" -r "+currFile)
 
 
+def spaceEfficientSignalToSeries(currIQFile, currSeriesFile, sampleRate, timeSignal,
+                                 centerFreq, gain, minFreqBug, maxFreqBug):
+    writeSignal(currFile=currIQFile, sampleRate=sampleRate, timeSignal=timeSignal, centerFreq=centerFreq,
+                gain=gain)
+
+    # get spec
+    spec, freqList, t = SignalRead.extractSpecFromIQFile(inFile=currIQFile, sampleRate=sampleRate,
+                                                     centerFreq=centerFreq)
+
+    ind, = np.where((freqList >= minFreqBug) & (freqList <= maxFreqBug))
+    spec = spec[ind[0]:ind[len(ind) - 1], :]
+    freqList = freqList[ind[0]: ind[len(ind) - 1]]
+
+    # delete IQ file
+    os.remove(currIQFile)
+    # get series from spec
+    series = SignalProcess.centerOfMassMethodSeries(spec=spec, freqList=freqList)
+
+    # delete spec
+    del spec
+    del freqList
+
+    # write series to file
+    writeSeriesToFile(currSeriesFile, series, t)
+
 '''
 Purpose: recording bugs and no bugs examples
 '''
-def collectExamples(outDir, sampleRate, timeSignal, gain, numBugsExamples, numNoBugsExamples, bugCenterFrequency = 0, noBugCenterFrequency =0,
+def collectExamples(outDirIQ, outDirSeries, sampleRate, timeSignal, gain, numBugsExamples, numNoBugsExamples, bugCenterFrequency = 0, noBugCenterFrequency =0,
                     bugFileLabel = 'bug_', noBugFileLabel = 'clean_'):
 
     process = "collecting examples"
@@ -37,31 +62,49 @@ def collectExamples(outDir, sampleRate, timeSignal, gain, numBugsExamples, numNo
     print "num no bug examples: ", numNoBugsExamples
     extension = ".txt"
     if(numBugsExamples > 0 and bugCenterFrequency > 0):
-        fileStartName = outDir + "/" + bugFileLabel
+        minFreq, maxFreq = UI.requestMinMaxFreqOfCategory('bug')
+
+
+        iQFileStartName = outDirIQ + "/" + bugFileLabel
+        seriesFileStartName = outDirSeries + "/" +bugFileLabel
         sigOK = UI.noticeCollectBugsExamples()
         if(not sigOK):
             exit(1)
 
         for i in range(numBugsExamples):
-            currFile = fileStartName+str(i)+extension
-            writeSignal(currFile= currFile, sampleRate= sampleRate, timeSignal=timeSignal, centerFreq=bugCenterFrequency, gain=gain)
+            currIQFile = iQFileStartName+str(i)+extension
+            currSeriesFile = seriesFileStartName+str(i)+extension
+
+            spaceEfficientSignalToSeries(currIQFile=currIQFile, currSeriesFile=currSeriesFile, sampleRate= sampleRate,
+                                         timeSignal=timeSignal, centerFreq=bugCenterFrequency,
+                                         gain=gain, minFreqBug=minFreq, maxFreqBug=maxFreq)
+
+
+
             if (i < numBugsExamples - 1):
                 sigOK = UI.requestNextKernel()
                 if(not sigOK):
                     exit(1)
 
-    if(numNoBugsExamples > 0 and bugCenterFrequency>0):
+    if(numNoBugsExamples > 0 and noBugCenterFrequency>0):
+        minFreq, maxFreq = UI.requestMinMaxFreqOfCategory('clean')
 
-        fileStartName = outDir+"/"+ noBugFileLabel
+        iQFileStartName = outDirIQ + "/" + noBugFileLabel
+        seriesFileStartName = outDirSeries + "/" + noBugFileLabel
         sigOK = UI.noticeCollectNoBugsExamples()
 
         if (not sigOK):
             exit(1)
 
         for i in range(numNoBugsExamples):
-            currFile = fileStartName+str(i)+extension
-            writeSignal(currFile= currFile, sampleRate= sampleRate, timeSignal=timeSignal, centerFreq=noBugCenterFrequency, gain=gain)
+            currIQFile = iQFileStartName+str(i)+extension
+            currSeriesFile = seriesFileStartName + str(i) + extension
 
+
+            # writeSignal(currFile= currIQFile, sampleRate= sampleRate, timeSignal=timeSignal, centerFreq=noBugCenterFrequency, gain=gain)
+            spaceEfficientSignalToSeries(currIQFile=currIQFile, currSeriesFile= currSeriesFile,sampleRate=sampleRate,
+                                         timeSignal=timeSignal,centerFreq=noBugCenterFrequency, gain=gain,
+                                         minFreqBug= minFreq, maxFreqBug= maxFreq)
 
             if(i<numNoBugsExamples-1):
                 sigOK = UI.requestNextKernel()
@@ -84,28 +127,29 @@ def writeSeriesToFile(fileName, series, timeList, showProgress = True):
         UI.declareProcessDone("saving series to csv file " + fileName)
 
 
-
-def writeMultSeriesToFiles(dirPath, multSeries, multTimeLists, labelsNums, labelTypesWords, ids):
-    process = "writing series to files"
-    UI.declareProcessStart(process)
-
-    if(len(multTimeLists)!= len(multSeries)):
-        print "Error: number of elements in collection of time lists does not \n " \
-              "match number of elements in collection of series..."
-        exit(1)
-
-
-    for i in range(len(multSeries)):
-        #convert numerical label to word label
-        wordLabel = labelTypesWords[labelsNums[i]]
-        fileName = dirPath+ '/' + wordLabel+'_'+str(ids[i])
-        writeSeriesToFile(fileName, multSeries[i], multTimeLists[i], showProgress=False)
-
-    UI.declareProcessDone(process)
+#
+# def writeMultSeriesToFiles(dirPath, multSeries, multTimeLists, labelsNums, labelTypesWords, ids):
+#     process = "writing series to files"
+#     UI.declareProcessStart(process)
+#
+#     if(len(multTimeLists)!= len(multSeries)):
+#         print "Error: number of elements in collection of time lists does not \n " \
+#               "match number of elements in collection of series..."
+#         exit(1)
+#
+#
+#     for i in range(len(multSeries)):
+#         #convert numerical label to word label
+#         wordLabel = labelTypesWords[labelsNums[i]]
+#         fileName = dirPath+ '/' + wordLabel+'_'+str(ids[i])
+#         writeSeriesToFile(fileName, multSeries[i], multTimeLists[i], showProgress=False)
+#
+#     UI.declareProcessDone(process)
 
 
 def writeSpectrogramToFile():
     pass
+
 
 
 
@@ -123,29 +167,43 @@ def collectAndWrite(iqDirPath, seriesDirPath, sampleRate, timeSignal, gain, numB
         noBugCenterFreq = UI.requestNoBugCenterFrequency()
 
 
-    collectExamples(outDir=iqDirPath, sampleRate=sampleRate,timeSignal= timeSignal,gain=gain,numBugsExamples=numBug,
+
+
+    #TODO March 19:
+    '''
+    for a single example
+    record IQ data in a file
+    get spectrogram
+    delete IQ data file
+    get series from spectrogram
+    delete spectrogram
+    write series to file
+    
+    '''
+
+    collectExamples(outDirIQ=iqDirPath, outDirSeries= seriesDirPath, sampleRate=sampleRate, timeSignal= timeSignal, gain=gain, numBugsExamples=numBug,
                     numNoBugsExamples=numNoBug, bugCenterFrequency= bugCenterFreq,
                     noBugCenterFrequency= noBugCenterFreq, bugFileLabel=labelsTypes[1], noBugFileLabel = labelsTypes[0])
 
 
 
-    #extract a list of spectrograms from the raw iq data directory
-    specs, freqLists, timeLists, labelsInNums, ids = SignalRead.extractSpecsFromIQDir(iqDirPath, sampleRate,
-                                                                                     bugCenterFreq, noBugCenterFreq,
-                                                                                      bugWordLabel= labelsTypes[1], noBugWordLabel=labelsTypes[0])
-    print "labels in nums: ", labelsInNums
-    print "ids: ", ids
-
-    # spreadDenom = 0.000001
-    # spreadDenom = 8.25
-    #TODO: look into exception handling for handling the could not find optimal parameters error
-    #TODO: such that you can adjust 0.000001 when error comes up
-
-    #turn those spectrograms into series
-    specsSeries = SignalProcess.extractResWithCenterOfMassMultSpecs(specs, freqLists)
-
-    #save the series into files in a directory
-    writeMultSeriesToFiles(seriesDirPath, specsSeries, timeLists, labelsInNums, labelsTypes, ids)
+    # #extract a list of spectrograms from the raw iq data directory
+    # specs, freqLists, timeLists, labelsInNums, ids = SignalRead.extractSpecsFromIQDir(iqDirPath, sampleRate,
+    #                                                                                  bugCenterFreq, noBugCenterFreq,
+    #                                                                                   bugWordLabel= labelsTypes[1], noBugWordLabel=labelsTypes[0])
+    # print "labels in nums: ", labelsInNums
+    # print "ids: ", ids
+    #
+    # # spreadDenom = 0.000001
+    # # spreadDenom = 8.25
+    # #TODO: look into exception handling for handling the could not find optimal parameters error
+    # #TODO: such that you can adjust 0.000001 when error comes up
+    #
+    # #turn those spectrograms into series
+    # specsSeries = SignalProcess.extractResWithCenterOfMassMultSpecs(specs, freqLists)
+    #
+    # #save the series into files in a directory
+    # writeMultSeriesToFiles(seriesDirPath, specsSeries, timeLists, labelsInNums, labelsTypes, ids)
 
 
 def mainUserPrompts():
@@ -158,9 +216,6 @@ def mainUserPrompts():
 
 
     ''''''''''''''''''''''''''''''''
-
-
-
 
     collectAndWrite(iqDirPath, seriesDirPath, sampleRate, timeSignal,  gain, numBug, numNoBug)
 
