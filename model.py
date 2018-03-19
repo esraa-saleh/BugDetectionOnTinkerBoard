@@ -8,7 +8,7 @@ import copy
 from sklearn.svm import SVC
 from random import randint
 import pickle
-import featurePlot
+#import featurePlot
 from sklearn import preprocessing
 from collections import Counter
 '''
@@ -168,7 +168,7 @@ def leaveOneOutCV(X, Y, classes, classFreqs, classifier,yOneHot = False, saveMod
 
         #saves the randomly chosen model
         if(p == trialToSave and saveModel == True):
-            print "Saving the mdoel..."
+            print "Saving the model..."
             pickle.dump(clf, open('savedModel', 'wb'))
 
         # test
@@ -342,7 +342,7 @@ def tempModelOutputTest():
     preds = clf.predict(randomX)
     colorMap = {0: 'red', 1: 'green'}
     wordMap = {0: 'no bug', 1: 'bug'}
-    featurePlot.plot2DFeatures(randomX, preds, colorMap=colorMap, wordMap=wordMap)
+    #featurePlot.plot2DFeatures(randomX, preds, colorMap=colorMap, wordMap=wordMap)
 
 
 # tempTestModel()

@@ -18,10 +18,10 @@ given the time interval, gain, sampling rate and center frequency
 def writeSignal(currFile, sampleRate, timeSignal, centerFreq, gain):
 
     totalNumSamples = int(timeSignal * sampleRate)
-    print "hackrf_transfer -f " + str(centerFreq) + " -g "+str(gain)+" -s " + str(sampleRate) + " -n " + str(
+    print "sudo hackrf_transfer -f " + str(centerFreq) + " -g "+str(gain)+" -s " + str(sampleRate) + " -n " + str(
         totalNumSamples) +" -r "+currFile
 
-    os.system("hackrf_transfer -f " + str(centerFreq) + " -g "+str(gain)+" -s " + str(sampleRate) + " -n " + str(
+    os.system("sudo hackrf_transfer -f " + str(centerFreq) + " -g "+str(gain)+" -s " + str(sampleRate) + " -n " + str(
         totalNumSamples) +" -r "+currFile)
 
 
