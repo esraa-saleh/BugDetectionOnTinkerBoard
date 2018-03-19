@@ -160,7 +160,6 @@ def extractSpecFromIQFile(inFile, sampleRate, centerFreq=None):
     # spectrum = spectrum[int(ind[0]):int(ind[len(ind)-1]), :]
     # pl.ylim([freqs[int(ind[0])], freqs[int(ind[len(ind)-1])]])
     pl.show()
-    pl.close()
     return spectrum, freqs, t
 
 
