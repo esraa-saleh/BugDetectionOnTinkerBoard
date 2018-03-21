@@ -63,10 +63,11 @@ def writeWelcome():
 def setupPrompts():
     print "To prepare for detection, we need the following settings:\n"
     samplingRate = raw_input('Sampling Rate       ---> ')
-    centerFreq   = raw_input('Center Frequency    ---> ')
     gain         = raw_input('Gain                ---> ')
     timeSig      = raw_input('Time Span of Signal ---> ')
-    return int(samplingRate), int(centerFreq), int(gain), float(timeSig)
+
+    return int(samplingRate), int(gain), float(timeSig)
+
 
 
 # def requestChangeFrequency():
@@ -88,6 +89,15 @@ def requestMinMaxFreqOfCategory(category):
     maxFreq = int(raw_input('Max frequency for '+category+' category: '))
     return minFreq, maxFreq
 
+def requestDetectionFreqSetup():
+    print "Specify a center frequency: "
+    centerFreq = int(raw_input('Center frequency ---> '))
+    print "Specify the frequency range to focus on: "
+    minFreq = int(raw_input('Min frequency: '))
+    maxFreq = int(raw_input('Max frequency: '))
+
+    return minFreq, maxFreq, centerFreq
+
 def showPrediction(bugBool):
 
     if(bugBool):
@@ -96,7 +106,8 @@ def showPrediction(bugBool):
         print "There is NO BUG in this kernel!"
 
 def requestDataDirPath():
-    dataDirPath = raw_input("Please enter the path to your gathered data : ")
+    dataDirPath = raw_input("Please enter the path to your gathered data (To quit enter q) : ")
+
     return dataDirPath
 
 def requestVarsOFSignalWriting():
@@ -110,22 +121,22 @@ def requestVarsOFSignalWriting():
 
     return iqDirPath, seriesDirPath, sampleRate, timeSignal, gain, numBug, numNoBug
 
-
-def mainMenu():
+def programBanner():
     print "===========================================================================\n" \
           "=                                                                         =\n" \
           "=                       The Pest Detection Program                        =\n" \
           "=                                                                         =\n" \
           "==========================================================================="
+
+def mainMenu():
+
     print "\nTo select an option, please enter the number corresponding to it:\n" \
           "1) Build A Bug/NoBug Dataset \n" \
           "2) Fit A Model Based on a Dataset \n" \
-          "3) Detect Bugs in Grain Kernels "
+          "3) Detect Bugs in Grain Kernels \n" \
+          "4) Quit the program"
+
     selection = int(raw_input("--->"))
-    print selection
-    while(selection !=1 and selection!=2 and selection!=3 ):
-        print "Invalid choice...try again..."
-        selection = int(raw_input("--->"))
 
     return selection
 

@@ -141,8 +141,14 @@ Assumes that the label types is what the bug/no bug file names start with
 #     allSeries = SignalProcess.extractResWithCenterOfMassMultSpecs(specs, freqLists)
 #     SignalWrite.writeMultSeriesToFiles(outDirPath, allSeries, timeLists, labels, labelsTypes, ids)
 
+def spectrogramCutForFreqRange(minFreq, maxFreq, freqList, spec):
+    ind, = np.where((freqList >= minFreq) & (freqList <= maxFreq))
+    spec = spec[ind[0]:ind[len(ind) - 1], :]
+    freqList = freqList[ind[0]: ind[len(ind) - 1]]
 
-def extractSpecFromIQFile(inFile, sampleRate, centerFreq=None):
+    return spec, freqList
+
+def extractSpecFromIQFile(inFile, sampleRate, centerFreq=None, specMinFreq = None, specMaxFreq = None):
     sig = iqDataFromFile(inFile)
 
     # totalSamples= len(sig.real)
@@ -161,6 +167,19 @@ def extractSpecFromIQFile(inFile, sampleRate, centerFreq=None):
     # pl.ylim([freqs[int(ind[0])], freqs[int(ind[len(ind)-1])]])
     pl.show()
     pl.close()
+
+    #These two statements are in case someone specifies only a single side of the desired frequency range
+    if(specMinFreq is not None  and specMaxFreq is None):
+        specMaxFreq = max(freqs)
+
+    elif(specMaxFreq is not None and specMinFreq is None):
+        specMinFreq = min(freqs)
+
+
+    #Because of the statemnets before, this will execute if at least one side of the frequency range is specified
+    if(specMinFreq is not None and specMinFreq is not None):
+        spectrum, freqs = spectrogramCutForFreqRange(specMinFreq, specMaxFreq, freqs, spectrum)
+
     return spectrum, freqs, t
 
 

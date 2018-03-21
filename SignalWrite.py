@@ -4,6 +4,8 @@ import sys
 import os
 import SignalProcess
 import SignalRead
+import json
+import gc
 
 '''
 Tested Feb 12
@@ -25,18 +27,20 @@ def writeSignal(currFile, sampleRate, timeSignal, centerFreq, gain):
         totalNumSamples) +" -r "+currFile)
 
 
+
+
 def spaceEfficientSignalToSeries(currIQFile, currSeriesFile, sampleRate, timeSignal,
-                                 centerFreq, gain, minFreqBug, maxFreqBug):
+                                 centerFreq, gain, minFreq, maxFreq):
     writeSignal(currFile=currIQFile, sampleRate=sampleRate, timeSignal=timeSignal, centerFreq=centerFreq,
                 gain=gain)
 
     # get spec
-    spec, freqList, t = SignalRead.extractSpecFromIQFile(inFile=currIQFile, sampleRate=sampleRate,
-                                                     centerFreq=centerFreq)
+    spec, freqList, t = SignalRead.extractSpecFromIQFile(inFile = currIQFile, sampleRate = sampleRate,
+                                                     centerFreq = centerFreq, specMinFreq = minFreq, specMaxFreq = maxFreq)
 
-    ind, = np.where((freqList >= minFreqBug) & (freqList <= maxFreqBug))
-    spec = spec[ind[0]:ind[len(ind) - 1], :]
-    freqList = freqList[ind[0]: ind[len(ind) - 1]]
+    # ind, = np.where((freqList >= minFreqBug) & (freqList <= maxFreqBug))
+    # spec = spec[ind[0]:ind[len(ind) - 1], :]
+    # freqList = freqList[ind[0]: ind[len(ind) - 1]]
 
     # delete IQ file
     os.remove(currIQFile)
@@ -46,9 +50,18 @@ def spaceEfficientSignalToSeries(currIQFile, currSeriesFile, sampleRate, timeSig
     # delete spec
     del spec
     del freqList
+    gc.collect()
 
     # write series to file
     writeSeriesToFile(currSeriesFile, series, t)
+    del series
+    del t
+    gc.collect()
+
+    #garbage collect
+
+
+
 
 '''
 Purpose: recording bugs and no bugs examples
@@ -61,6 +74,8 @@ def collectExamples(outDirIQ, outDirSeries, sampleRate, timeSignal, gain, numBug
     print "num bug examples: ", numBugsExamples
     print "num no bug examples: ", numNoBugsExamples
     extension = ".txt"
+
+
     if(numBugsExamples > 0 and bugCenterFrequency > 0):
         minFreq, maxFreq = UI.requestMinMaxFreqOfCategory('bug')
 
@@ -77,8 +92,7 @@ def collectExamples(outDirIQ, outDirSeries, sampleRate, timeSignal, gain, numBug
 
             spaceEfficientSignalToSeries(currIQFile=currIQFile, currSeriesFile=currSeriesFile, sampleRate= sampleRate,
                                          timeSignal=timeSignal, centerFreq=bugCenterFrequency,
-                                         gain=gain, minFreqBug=minFreq, maxFreqBug=maxFreq)
-
+                                         gain=gain, minFreq=minFreq, maxFreq=maxFreq)
 
 
             if (i < numBugsExamples - 1):
@@ -104,7 +118,7 @@ def collectExamples(outDirIQ, outDirSeries, sampleRate, timeSignal, gain, numBug
             # writeSignal(currFile= currIQFile, sampleRate= sampleRate, timeSignal=timeSignal, centerFreq=noBugCenterFrequency, gain=gain)
             spaceEfficientSignalToSeries(currIQFile=currIQFile, currSeriesFile= currSeriesFile,sampleRate=sampleRate,
                                          timeSignal=timeSignal,centerFreq=noBugCenterFrequency, gain=gain,
-                                         minFreqBug= minFreq, maxFreqBug= maxFreq)
+                                         minFreq= minFreq, maxFreq= maxFreq)
 
             if(i<numNoBugsExamples-1):
                 sigOK = UI.requestNextKernel()
@@ -185,7 +199,10 @@ def collectAndWrite(iqDirPath, seriesDirPath, sampleRate, timeSignal, gain, numB
                     numNoBugsExamples=numNoBug, bugCenterFrequency= bugCenterFreq,
                     noBugCenterFrequency= noBugCenterFreq, bugFileLabel=labelsTypes[1], noBugFileLabel = labelsTypes[0])
 
+    settings = {'sampling_rate': 2500000, 'signal_time': 5, 'gain': 40, 'series_path': seriesDirPath}
 
+    with open(os.path.basename(seriesDirPath) + 'Settings' + '.txt', 'w') as file:
+        file.write(json.dumps(settings))
 
     # #extract a list of spectrograms from the raw iq data directory
     # specs, freqLists, timeLists, labelsInNums, ids = SignalRead.extractSpecsFromIQDir(iqDirPath, sampleRate,
@@ -206,18 +223,15 @@ def collectAndWrite(iqDirPath, seriesDirPath, sampleRate, timeSignal, gain, numB
     # writeMultSeriesToFiles(seriesDirPath, specsSeries, timeLists, labelsInNums, labelsTypes, ids)
 
 
+
 def mainUserPrompts():
     UI.writeWelcome()
     iqDirPath, seriesDirPath, sampleRate, timeSignal, gain, numBug, numNoBug= UI.requestVarsOFSignalWriting()
 
-    ''''''''''''''''''''''''''''''
-
-    #TODO March 14: Make  this function and all funcs that come within use centerFreqBug and centerFreqNoBug
-
-
-    ''''''''''''''''''''''''''''''''
 
     collectAndWrite(iqDirPath, seriesDirPath, sampleRate, timeSignal,  gain, numBug, numNoBug)
+
+
 
 
 

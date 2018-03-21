@@ -8,87 +8,128 @@ import copy
 from sklearn.svm import SVC
 from random import randint
 import pickle
-#import featurePlot
+# import featurePlot
 from sklearn import preprocessing
+from pathlib2 import Path
 from collections import Counter
+import json
+import yaml
 '''
 A 'file' here normally refers to a file with two columns : time and the corresponding series recordings
 X is defined as a series' features 
 Y is defined as a label or class (bug/no bug)
 '''
 
-NUM_FEATURES =1
+NUM_FEATURES =2
 
 
-def getExampleFromFile(inFile):
+def calculateThresh(seriesDirPath, saveThresh = True):
+    allFiles = os.listdir(seriesDirPath)
+    count = 0
+    # allDiffs = []
+    total = 0
+    for i in range(len(allFiles)):
+        if ('clean' in allFiles[i]):
+            count += 1
+            series = getSeriesFromFile(seriesDirPath + '/' + allFiles[i])
+            # allDiffs.append(max(series) - min(series))
+            total += max(series) - min(series)
+
+    # thresh = np.median(allDiffs)
+    thresh = total / count
+
+
+    #save thresh to settings file
+    if(saveThresh):
+
+        settingsPath = 'model_data_settings' + '.txt'
+        print settingsPath
+        settingsPathObj = Path(settingsPath)
+        newEntry = {'thresh': thresh}
+
+        if(settingsPathObj.exists()):
+            with open(settingsPath) as setFile:
+                settingsDict = yaml.safe_load(setFile)
+
+            settingsDict.update(newEntry)
+            print settingsDict
+
+        else:
+            settingsDict = newEntry
+
+        with open(settingsPath, 'w') as setFile:
+            setFile.write(json.dumps(settingsDict))
+
+    return thresh
+
+
+# def testThreshFunc():
+#     seriesDirPath ='/home/esraa/PycharmProjects/radioSignalPestDet/BugDetectorProgram/seriesExcamplesThreshTest'
+#     thresh = getThresh(seriesDirPath)
+
+
+
+def getSeriesFromFile(inFile):
     _, series = SignalRead.extractSeriesFromFile(inFile)
     return series
 
-def getAllLabelsFromFiles(inFilesList, labelTypes):
-    return SignalRead.extractSpecNumLabelsFromFiles(inFilesList, labelTypes)
-def sigmoid(x, a , b):
-  return 1 / (1 + np.exp((-a*x)+a*b))
-
-def scoreSeries(series, numCols):
-
-    if(numCols > len(series)):
-        print "Error: attempting to split series into columns such that " \
-              "the number of columns is more than the number of series points"
-        exit(1)
-    score = 0
-    thresh = 3.1e-05
-    # medianDistClean = 2.64509999999e-05
-    lenSubSeries = (len(series))//(numCols)
-    for i in range(0, numCols, lenSubSeries):
-        dist = max(series[i: i+lenSubSeries]) - min(series[i: i+ lenSubSeries])
-        # k = kurtosis(series[i:i+lenSubSeries])
-        if(dist > thresh):
-        # if(k < 0):
-            score += dist*1e5
-            # score+=k
-    # score = float(score)/float(numCols)
-
-            # print dist
-    return score
-
-
-def getFeaturesFromSeries(series):
+def getFeaturesFromSeries(series, thresh):
 
     features = np.empty(NUM_FEATURES, dtype='float64')
-    # features[3] = skew(series)
     features[0] = kurtosis(series)
-    # print features[0]
     # %90 ACCURACY FOR BOTH CATEGORIES WHEN NUMCOLS = 100
-    # features[1] = scoreSeries(series, 100)
-    # print features[0]
-    # features[2] = np.mean(series)
-    # features[4] = max(series) - min(series)
-    # features[5] = max(series)
-    # print features[1]
-    # features[5] = min(series)
-    # features[6] = max(series)
-    # features[0] = np.mean(series)
-    # features[2] = np.std(series)
-    # features[7] = np.median(series)
-
+    features[1] = scoreSeries(series, 100, thresh)
     return features
 
-def getOneExampleXFromFile(inFile):
-    series = getExampleFromFile(inFile)
+def getOneExampleXFromFile(inFile, thresh):
+    series = getSeriesFromFile(inFile)
     print inFile
-    features = getFeaturesFromSeries(series)
+    features = getFeaturesFromSeries(series, thresh)
     return features
+
+
+def getAllLabelsFromFiles(inFilesList, labelTypes):
+    return SignalRead.extractSpecNumLabelsFromFiles(inFilesList, labelTypes)
+
 
 def getXYFromFiles(dirPath, allFiles, labelTypes):
-
     X = np.empty(shape=(len(allFiles), NUM_FEATURES), dtype='float64')
+
+    # This is needed for the score feature
+    thresh = calculateThresh(dirPath)
+
     for i in range(len(allFiles)):
-        features = getOneExampleXFromFile(dirPath + '/'+ allFiles[i])
+        features = getOneExampleXFromFile(dirPath + '/' + allFiles[i], thresh)
         for x in range(len(features)):
             X[i][x] = features[x]
 
     Y = getAllLabelsFromFiles(allFiles, labelTypes)
     return X, Y
+
+
+
+
+#TODO: deal with len(series)%numCols !=0
+
+def scoreSeries(series, numCols, thresh, distFactor = 1e5):
+
+    # distFactor = 1e5, was determined for the actual bugs dataset not the demo
+
+    if(numCols > len(series)):
+        print "Error: attempting to split series into columns such that " \
+              "the number of columns is more than the number of series points"
+        exit(1)
+
+    score = 0
+    # thresh = 3.1e-05
+    # medianDistClean = 2.64509999999e-05
+    lenSubSeries = (len(series))//(numCols)
+    for i in range(0, numCols, lenSubSeries):
+        dist = max(series[i: i+lenSubSeries]) - min(series[i: i+ lenSubSeries])
+        if(dist > thresh):
+            score += dist*distFactor
+
+    return score
 
 
 def shuffleXY(X, Y):
@@ -114,25 +155,28 @@ def wordNumDictionaries(wordLabelTypes):
 
     return wordToNum, numToWord
 
-def scaleTrainTestX(trainX, testX):
-    scaler = preprocessing.StandardScaler().fit(trainX)
-    trainX = scaler.transform(trainX)
-    testX = scaler.transform(testX)
-    return trainX, testX
+def getClassFrequencies(Y, classesInNums):
+    freqsMap = {}
+    # initialize map
+    for x in range(len(classesInNums)):
+        freqsMap.update({classesInNums[x]: 0})
 
-def testScale():
-    '''
-    Test results :  [[-0.98058068 -1.06904497]
- [-0.39223227 -0.26726124]
- [ 1.37281295  1.33630621]] --- [[-0.98058068 -0.26726124]]
+    for i in range(len(Y)):
+        if(Y[i] in classesInNums):
+            freqsMap[Y[i]] +=1
 
+    return freqsMap
 
-    '''
-    trainX = [[1,3], [2,4], [5,6]]
-    testX = [[1,4]]
+def applyAdditionalMapping(lowerNumToWordMap, higherNumToWordMap, Y):
+    #Y has nums corresponding to distinct file types
+    # firstMap maps a number to a word label
+    # second map will map that word to a new number (usually for grouping categories)
+    map2WordLabels = set(higherNumToWordMap.keys())
+    for i in range(len(Y)):
 
-    trainX, testX = scaleTrainTestX(trainX, testX)
-    print "Test results : ", trainX,"---", testX
+        if(lowerNumToWordMap[Y[i]] in map2WordLabels):
+            Y[i] = higherNumToWordMap[lowerNumToWordMap[Y[i]]]
+    return Y
 
 
 def trainTestLOOCV(index, X, Y):
@@ -149,6 +193,31 @@ def trainTestLOOCV(index, X, Y):
     # print trainX
     return trainX, trainY, testX, testY
 
+
+def scaleTrainTestX(trainX, testX):
+    scaler = preprocessing.StandardScaler().fit(trainX)
+    trainX = scaler.transform(trainX)
+    testX = np.reshape(testX, (1, -1))
+    testX = scaler.transform(testX)
+    return trainX, testX
+
+# def testScale():
+#     '''
+#     Test results :  [[-0.98058068 -1.06904497]
+#  [-0.39223227 -0.26726124]
+#  [ 1.37281295  1.33630621]] --- [[-0.98058068 -0.26726124]]
+#
+#
+#     '''
+#     trainX = [[1,3], [2,4], [5,6]]
+#     testX = [[1,4]]
+#
+#     trainX, testX = scaleTrainTestX(trainX, testX)
+#     print "Test results : ", trainX,"---", testX
+
+
+
+
 # will choose a random model from the models generated by th
 def leaveOneOutCV(X, Y, classes, classFreqs, classifier,yOneHot = False, saveModel = True):
     print Y
@@ -163,8 +232,12 @@ def leaveOneOutCV(X, Y, classes, classFreqs, classifier,yOneHot = False, saveMod
         #single example in each test
 
         trainX, trainY, testX, testY = trainTestLOOCV(p, X, Y)
+        # trainX, testX = scaleTrainTestX(trainX, testX)
+        # print trainX
+
         clf = copy.copy(classifier)
         clf.fit(trainX, trainY)
+
 
         #saves the randomly chosen model
         if(p == trialToSave and saveModel == True):
@@ -173,10 +246,10 @@ def leaveOneOutCV(X, Y, classes, classFreqs, classifier,yOneHot = False, saveMod
 
         # test
         correct = 0
-        #use when not scaling
-        pred = clf.predict([testX])
-        #use when doing scaling
-        # pred = clf.predict(testX)
+        # use when not scaling
+        # pred = clf.predict([testX])
+        # use when doing scaling
+        pred = clf.predict(testX)
 
         # predProba = clf._predict_proba([testX])
         # print "Prediction probabilities: ", predProba
@@ -214,20 +287,8 @@ def leaveOneOutCV(X, Y, classes, classFreqs, classifier,yOneHot = False, saveMod
 #classesInNums = [1,4,5]
 # Y = [1,1,1,4,1,5,4,4,4,1]
 
-def getClassFrequencies(Y, classesInNums):
-    freqsMap = {}
-    # initialize map
-    for x in range(len(classesInNums)):
-        freqsMap.update({classesInNums[x]: 0})
 
-    for i in range(len(Y)):
-        if(Y[i] in classesInNums):
-            freqsMap[Y[i]] +=1
 
-    return freqsMap
-
-# TODO: a bugNoBug Map may be better than just wordLabelTypes if we want to avoid renaming files to bug and no bug
-# TODO: this part needs refactoring to optimize code style
 def crossValSVMModel(dataDirPath, wordLabelTypes, bugNoBugMap = None):
     #list all file names
     allFiles = os.listdir(dataDirPath)
@@ -237,7 +298,6 @@ def crossValSVMModel(dataDirPath, wordLabelTypes, bugNoBugMap = None):
     X, Y = getXYFromFiles(dataDirPath, allFiles, wordLabelTypes)
 
     # indices tells us where the original indices moved
-
     X, Y, indices = shuffleXY(X, Y)
 
     # obtain the mapping applied to Y as dicts
@@ -271,21 +331,6 @@ def crossValSVMModel(dataDirPath, wordLabelTypes, bugNoBugMap = None):
     print misClassedFiles
     return acc, accClasses, misClassedFiles
 
-
-
-def applyAdditionalMapping(lowerNumToWordMap, higherNumToWordMap, Y):
-    #Y has nums corresponding to distinct file types
-    # firstMap maps a number to a word label
-    # second map will map that word to a new number (usually for grouping categories)
-    map2WordLabels = set(higherNumToWordMap.keys())
-    for i in range(len(Y)):
-
-        if(lowerNumToWordMap[Y[i]] in map2WordLabels):
-            Y[i] = higherNumToWordMap[lowerNumToWordMap[Y[i]]]
-    return Y
-
-def getTestSetResults(testFiles):
-    pass
 
 def tempTestModel():
     # dataDirPath = '/home/esraa/PycharmProjects/radioSignalPestDet/bug_no_bug_examples'
@@ -342,10 +387,11 @@ def tempModelOutputTest():
     preds = clf.predict(randomX)
     colorMap = {0: 'red', 1: 'green'}
     wordMap = {0: 'no bug', 1: 'bug'}
-    #featurePlot.plot2DFeatures(randomX, preds, colorMap=colorMap, wordMap=wordMap)
+    # featurePlot.plot2DFeatures(randomX, preds, colorMap=colorMap, wordMap=wordMap)
 
 
 # tempTestModel()
 # testScale()
 # tempModelOutputTest()
 
+# testThreshFunc()
