@@ -1,16 +1,9 @@
 import numpy as np
 import UI
-# import SignalRead
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as pl
 
 
-'''
-Tested Feb 12
-TODO: Exception handling for the gaussian function parameter optimization
-Update: This is not needed since the main program uses the centroid method
-
-'''
 
 '''
 Purpose: to obtain a series consisting of the resonant frequency for every timestep 
@@ -112,41 +105,23 @@ def extractResWithCenterOfMassMultSpecs(specs, freqLists):
         allSeries.append(centerOfMassMethodSeries(spec=specs[i], freqList=freqLists[i]))
     UI.declareProcessDone(process)
     return allSeries
-#
-# def extractResWithFitMultSpecs(specs, freqLists, spreadDenom):
-#     process = 'extracting series from every spectrogram given...'
-#     UI.declareProcessStart(process)
-#     allSeries = []
-#     for i in range(len(specs)):
-#         allSeries.append(extractResonantWithFit(specs[i], freqLists[i], spreadDenom))
-#     UI.declareProcessDone(process)
-#     return allSeries
 
-# 4 2500000 1 303000000 40
-def plotFitsTest():
-    # # specFile = 'specFile.txt'
-    # #TODO: this cannot be automated, it is obtaned by trial and error
-    # #for now we can have a temporary calibration stage
-    # spreadDenom = 0.00001
-    #
-    # iqFile = '/home/esraa/PycharmProjects/radioSignalPestDet/bug_no_bug_dataset/bug_0.txt'
-    # spec, f, timeList = SignalRead.extractSpecFromIQFile(inFile=iqFile, sampleRate=2500000, centerFreq=303000000)
-    # # f, spec = SignalRead.extractSpecFromSpecFile(specFile)
-    #
-    # series1 = extractResonantWithFit(spec, f, spreadDenom)
-    # t1 = np.arange(0, len(series1))
-    #
-    #
-    # maxS1 = max(series1)
-    # minS1 = min(series1)
-    #
-    # fig, ax1 = pl.subplots(1)
-    #
-    # ax1.plot(t1, series1)
-    # # ax1.set_ylim(minS1,maxS1)
-    # pl.show()
-    pass
 
-if __name__ == '__main__':
+def rollingAverage(series, kernelLen):
+    rolled = np.empty(len(series) - kernelLen)
+    for i in range(0, len(series)- kernelLen):
+        rolled[i] = np.mean(series[i:i+kernelLen])
+    return rolled
 
-    plotFitsTest()
+def magnitudesRatesOfChange(series, time, window = 10):
+    if(len(series) != len(time)):
+        print "ERROR: length of time series given does not equal length of time array"
+        exit(1)
+
+    rates = np.empty(len(series)- window, dtype = 'float64')
+    for i in range(0, len(series) - window):
+        rates[i] = abs((series[i+window]- series[i])/(time[i+window - time[i]]))
+    
+    return rates
+
+

@@ -155,7 +155,7 @@ def extractSpecFromIQFile(inFile, sampleRate, centerFreq=None, specMinFreq = Non
     #TODO: try NFFT= (smallest power of 2 greater than totalSamples)
     cmap = pl.get_cmap('inferno')
     pl.suptitle('Note the frequency range for which a series will be extracted ')
-    spectrum, freqs, t, im = pl.specgram(sig, Fs=sampleRate, Fc=centerFreq, NFFT=256, cmap=cmap)
+    spectrum, freqs, t, im = pl.specgram(sig, Fs=sampleRate, Fc=centerFreq, NFFT=1048, cmap=cmap)
     # minFreq = int(raw_input("Min : "))
     # maxFreq = int(raw_input("Max: "))
 

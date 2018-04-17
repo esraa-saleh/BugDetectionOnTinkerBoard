@@ -1,3 +1,4 @@
+import matplotlib.pyplot as pl
 
 
 
@@ -139,5 +140,10 @@ def mainMenu():
     selection = int(raw_input("--->"))
 
     return selection
+
+def plotResFreqs(time, series):
+    pl.plot(time, series)
+    pl.show()
+    pl.close()
 
 

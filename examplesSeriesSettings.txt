@@ -1,0 +1,1 @@
+{"sampling_rate": 2500000, "signal_time": 5.0, "series_path": "/home/linaro/Desktop/examplesSeries", "gain": 40}
