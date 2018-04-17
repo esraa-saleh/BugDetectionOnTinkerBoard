@@ -110,7 +110,7 @@ Output  : sigOK, boolean, in case the user decided to end measurement taking abr
 '''
 
 
-def collectOneTypeExamples(numExamples, iQFileStartName, seriesFileStartName, extension, sampleRate, timeSignal, centerFreq, gain):
+def collectOneTypeExamples(numExamples, iQFileStartName, seriesFileStartName, extension, sampleRate, timeSignal, centerFreq, gain, interactiveMode = True):
     sigOK = 1
     for i in range(numExamples):
         currIQFile = iQFileStartName+str(i)+extension
@@ -121,9 +121,13 @@ def collectOneTypeExamples(numExamples, iQFileStartName, seriesFileStartName, ex
                                          gain=gain)
 
         if (i < numExamples - 1):
-            sigOK = UI.requestNextKernel()
-            if(not sigOK):
-                return not sigOK
+            if(interactiveMode):
+                sigOK = UI.requestNextKernel()
+                if(not sigOK):
+                    return not sigOK
+            else:
+                UI.collectExampleOnButtonPress()
+
     
     return sigOK
 
@@ -157,7 +161,7 @@ Files Written : The number of files written will be : numBugsExamples + numNoBug
                 resonant frequencies of the cavity.
 '''
 def collectExamples(outDirIQ, outDirSeries, sampleRate, timeSignal, gain, numBugsExamples, numNoBugsExamples, bugCenterFrequency = 0, noBugCenterFrequency =0,
-                    bugFileLabel = 'bug_', noBugFileLabel = 'clean_'):
+                    bugFileLabel = 'bug_', noBugFileLabel = 'clean_', interactiveMode = True):
 
     process = "collecting examples"
     UI.declareProcessStart(process)
@@ -170,11 +174,16 @@ def collectExamples(outDirIQ, outDirSeries, sampleRate, timeSignal, gain, numBug
 
         iQFileStartName = outDirIQ + "/" + bugFileLabel
         seriesFileStartName = outDirSeries + "/" +bugFileLabel
-        sigOK = UI.noticeCollectBugsExamples()
-        if(not sigOK):
-            exit(1)
+        
+        if(interactiveMode):
+            sigOK = UI.noticeCollectBugsExamples()
+            if(not sigOK):
+                exit(1)
+        else:
+            print "We will start collecting examples of infested kernels ..."
+            UI.collectExampleOnButtonPress()
 
-        sigOK = collectOneTypeExamples(numBugsExamples, iQFileStartName, seriesFileStartName, extension, sampleRate, timeSignal, bugCenterFrequency, gain)
+        sigOK = collectOneTypeExamples(numBugsExamples, iQFileStartName, seriesFileStartName, extension, sampleRate, timeSignal, bugCenterFrequency, gain, interactiveMode)
         
         if(not sigOK):
             exit(1)
@@ -183,12 +192,16 @@ def collectExamples(outDirIQ, outDirSeries, sampleRate, timeSignal, gain, numBug
 
         iQFileStartName = outDirIQ + "/" + noBugFileLabel
         seriesFileStartName = outDirSeries + "/" + noBugFileLabel
-        sigOK = UI.noticeCollectNoBugsExamples()
 
-        if (not sigOK):
-            exit(1)
+        if(interactiveMode):
+            sigOK = UI.noticeCollectNoBugsExamples()
+            if (not sigOK):
+                exit(1)
+        else:
+            print "We will start collecting examples of clean kernels ..."
+            UI.collectExampleOnButtonPress()
 
-        sigOK = collectOneTypeExamples(numNoBugsExamples, iQFileStartName, seriesFileStartName, extension, sampleRate, timeSignal, noBugCenterFrequency, gain)
+        sigOK = collectOneTypeExamples(numNoBugsExamples, iQFileStartName, seriesFileStartName, extension, sampleRate, timeSignal, noBugCenterFrequency, gain, interactiveMode)
 
         if(not sigOK):
             exit(1)
@@ -262,7 +275,7 @@ def mainSettingsFromFile(filePath):
         labelsTypes = ['clean_', 'bug_']
         collectExamples(outDirIQ=iqDirPath, outDirSeries= seriesDirPath, sampleRate=sampleRate, timeSignal= timeSignal, gain=gain, numBugsExamples=numBug,
                     numNoBugsExamples=numNoBug, bugCenterFrequency= bugCenterFreq,
-                    noBugCenterFrequency= noBugCenterFreq, bugFileLabel=labelsTypes[1], noBugFileLabel = labelsTypes[0])
+                    noBugCenterFrequency= noBugCenterFreq, bugFileLabel=labelsTypes[1], noBugFileLabel = labelsTypes[0], interactiveMode= False)
 
         settings = {'sampling_rate': sampleRate, 'signal_time': timeSignal, 'gain': gain, 'series_path': seriesDirPath}
 

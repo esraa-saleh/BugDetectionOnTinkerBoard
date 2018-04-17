@@ -1,6 +1,7 @@
 import matplotlib.pyplot as pl
+import button
 
-
+BUTTON_PIN = 17
 
 def askTimeInterval():
     t = float(raw_input("Enter receiving time interval: "))
@@ -17,6 +18,12 @@ def quitOrContinue(message=''):
         return 0
     else:
         return 1
+
+def collectExampleOnButtonPress():
+    print "Please insert a kernel to be scanned, then press the go button on your device..."
+    button.listenButtonPress(BUTTON_PIN)
+
+
 
 def noticeCollectBugsExamples():
     return quitOrContinue("Make sure that the transmitter is sending BUG examples.\n "

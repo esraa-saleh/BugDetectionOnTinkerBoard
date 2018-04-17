@@ -43,9 +43,9 @@ def mainSettingsFromFile(settingsFile):
         gain = int(settings[1])
         timeSig = int(settings[2])
         centerFreq = int(settings[3])
-        sig_OK = UI.requestNextKernel()
+        UI.collectExampleOnButtonPress()
      
-        while(sig_OK):
+        while(True):
            #record the signal
            time.sleep(5)
            SignalWrite.writeSignal(currFile=fileNameSig, sampleRate=samplingRate, centerFreq=centerFreq, gain= gain, timeSignal=timeSig+1)
@@ -83,7 +83,7 @@ def mainSettingsFromFile(settingsFile):
            UI.showPrediction(pred[0])
 
            #TODO: when changing to indication of taking a measuremnet using a button, change requestNextKernel from the UI file
-           sig_OK = UI.requestNextKernel()
+           UI.collectExampleOnButtonPress()
 
         
 '''
