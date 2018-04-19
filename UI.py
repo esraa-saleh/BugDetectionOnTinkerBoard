@@ -1,8 +1,12 @@
 import matplotlib.pyplot as pl
 import button
+import led
+
 
 BUTTON_PIN = 17
-
+BUG_LED = 166
+CLEAN_LED = 164
+PROGRESS_LED = 252
 def askTimeInterval():
     t = float(raw_input("Enter receiving time interval: "))
     return t
@@ -19,8 +23,7 @@ def quitOrContinue(message=''):
     else:
         return 1
 
-def collectExampleOnButtonPress():
-    print "Please insert a kernel to be scanned, then press the go button on your device..."
+def waitForButtonPress():
     button.listenButtonPress(BUTTON_PIN)
 
 
@@ -105,6 +108,21 @@ def requestDetectionFreqSetup():
     maxFreq = int(raw_input('Max frequency: '))
 
     return minFreq, maxFreq, centerFreq
+
+def removePredictionOnLED():
+    led.changeLEDState(on = False, pin = BUG_LED)
+    led.changeLEDState(on = False, pin = CLEAN_LED)
+
+def showPredictionOnLED(bugBool):
+    if(bugBool):
+        led.changeLEDState(on = True, pin = BUG_LED)
+    else:
+        led.changeLEDState(on = True, pin = CLEAN_LED)
+
+def changeProgressLEDState(state):
+    led.changeLEDState(on = state, pin = PROGRESS_LED)
+
+
 
 def showPrediction(bugBool):
 

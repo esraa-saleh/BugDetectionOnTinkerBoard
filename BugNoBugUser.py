@@ -32,6 +32,7 @@ Input: settingsFile, a file formatted according to the documentation in main.py,
 #TODO: needs to not be interactive (interactive parts will be eliminated when we get buttons and LEDs) 
 def mainSettingsFromFile(settingsFile):
 
+    UI.removePredictionOnLED()
     with open(settingsFile, 'r') as f:
         settings = f.readlines()
         settings = [settings[i].strip() for i in range(len(settings))]
@@ -43,13 +44,15 @@ def mainSettingsFromFile(settingsFile):
         gain = int(settings[1])
         timeSig = int(settings[2])
         centerFreq = int(settings[3])
-        UI.collectExampleOnButtonPress()
+        UI.waitForButtonPress()
      
         while(True):
+           UI.changeProgressLEDState(state = True)
            #record the signal
            time.sleep(5)
            SignalWrite.writeSignal(currFile=fileNameSig, sampleRate=samplingRate, centerFreq=centerFreq, gain= gain, timeSignal=timeSig+1)
-        
+           UI.changeProgressLEDState(state= False)
+ 
            spec, freqs, t = SignalRead.extractSpecFromIQFile(inFile=fileNameSig, sampleRate=samplingRate, centerFreq=centerFreq)
         
         
@@ -80,10 +83,14 @@ def mainSettingsFromFile(settingsFile):
            print pred
 
            #TODO: when changing to indication with LEDs, modify showPrediction from the UI file
+           UI.changeProgressLEDState(state= False)
            UI.showPrediction(pred[0])
+           UI.showPredictionOnLED(pred[0])
 
            #TODO: when changing to indication of taking a measuremnet using a button, change requestNextKernel from the UI file
-           UI.collectExampleOnButtonPress()
+           UI.waitForButtonPress()
+           UI.removePredictionOnLED()
+           UI.waitForButtonPress()
 
         
 '''

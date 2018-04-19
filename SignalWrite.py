@@ -8,6 +8,10 @@ import json
 import gc
 
 
+
+
+
+
 '''
 Function: writeSignal
 Purpose : sends a commandline command to write to a file a number of samples
@@ -25,6 +29,7 @@ Output  :   N/A
 Files Written : currFile, which contains IQ data gathered
 
 '''
+#TODO: wiriting tool indicator and call the correct command, either hackrf or rtl-sdr
 def writeSignal(currFile, sampleRate, timeSignal, centerFreq, gain):
 
     totalNumSamples = int(timeSignal * sampleRate)
@@ -77,7 +82,7 @@ def spaceEfficientSignalToSeries(currIQFile, currSeriesFile, sampleRate, timeSig
 
     series = SignalProcess.rollingAverage(series, 10)
     t = SignalProcess.rollingAverage(t, 10)
-    UI.plotResFreqs(t, series)
+    #UI.plotResFreqs(t, series)
     del spec
     del freqList
     gc.collect()

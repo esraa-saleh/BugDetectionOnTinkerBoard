@@ -1,0 +1,52 @@
+This channel is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.LED OFF
+This channel is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.LED OFF
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+Traceback (most recent call last):
+  File "main.py", line 133, in <module>
+    mainTextFileIn()
+  File "main.py", line 85, in mainTextFileIn
+    BugNoBugUser.mainSettingsFromFile(settingsFile)
+  File "/home/linaro/Desktop/BugDetectorProgram/BugDetectionOnTinkerBoard/BugNoBugUser.py", line 47, in mainSettingsFromFile
+    UI.waitForButtonPress()
+  File "/home/linaro/Desktop/BugDetectorProgram/BugDetectionOnTinkerBoard/UI.py", line 27, in waitForButtonPress
+    button.listenButtonPress(BUTTON_PIN)
+  File "/home/linaro/Desktop/BugDetectorProgram/BugDetectionOnTinkerBoard/button.py", line 14, in listenButtonPress
+    time.sleep(0.25)
+KeyboardInterrupt

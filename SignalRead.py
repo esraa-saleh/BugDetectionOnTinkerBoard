@@ -1,16 +1,17 @@
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as pl
 import os
 import numpy as np
 import UI
 #TODO: eliminate need for pandas
 import pandas as pd
-
-'''
-Tested Feb 12
-
-'''
 import SignalWrite
 import SignalProcess
+
+
+pl.ioff()
 
 '''
 Purpose: reading a binary file of IQ data and returning it as a complex numbered time series
@@ -153,8 +154,10 @@ def extractSpecFromIQFile(inFile, sampleRate, centerFreq=None, specMinFreq = Non
 
     # totalSamples= len(sig.real)
     #TODO: try NFFT= (smallest power of 2 greater than totalSamples)
+    
+    
     cmap = pl.get_cmap('inferno')
-    pl.suptitle('Note the frequency range for which a series will be extracted ')
+    #pl.suptitle('Note the frequency range for which a series will be extracted ')
     spectrum, freqs, t, im = pl.specgram(sig, Fs=sampleRate, Fc=centerFreq, NFFT=1048, cmap=cmap)
     # minFreq = int(raw_input("Min : "))
     # maxFreq = int(raw_input("Max: "))
@@ -165,8 +168,8 @@ def extractSpecFromIQFile(inFile, sampleRate, centerFreq=None, specMinFreq = Non
     #
     # spectrum = spectrum[int(ind[0]):int(ind[len(ind)-1]), :]
     # pl.ylim([freqs[int(ind[0])], freqs[int(ind[len(ind)-1])]])
-    pl.show()
-    pl.close()
+    #pl.show()
+    #pl.close()
 
     #These two statements are in case someone specifies only a single side of the desired frequency range
     if(specMinFreq is not None  and specMaxFreq is None):
@@ -196,5 +199,4 @@ def extractSeriesFromFile(inFile):
     series = df.iloc[:, 1]
     return time, series
 
-# #TODO: run this!
-# testExtractSpecsFromIQDir()
+
