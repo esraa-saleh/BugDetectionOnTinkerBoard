@@ -128,12 +128,27 @@ def getAllLabelsFromFiles(inFilesList, labelTypes):
 
 
 '''
+Function: getXYFromFiles
 
+Purpose : to read in a colection of series from a directory and obtain features and a class label for each file
 
+Input   : thresh, float, threshold used for calculating the score feature. The threshold is defined by the function
+          calculateThresh
+          dirPath, string, path to the directory containing all series files from which we wish to extract
+          features and labels
+          allFiles, list or array of strings, sequence of strings each bieng a file name 
+          labelTypes, list or array of strings, sequence of strings each bieng a keyword for a 
+          certain class that is expectd to appear in the given file list
+
+Output  : X, 2D numpy array, this is a sequence of sub-sequences such that each sub-sequence is an array of features
+          corresponding to a particular example.
+          Y, numpy array, a parallel sequence to X such that each element is a label (numerical representation of a class) for
+          a feature list (i.e. )
+          
 '''
-
+#TODO: continue documentation from here
 def getXYFromFiles(thresh, dirPath, allFiles, labelTypes):
-    X = np.empty(shape=(len(allFiles), NUM_FEATURES), dtype='float64')
+    X = np.empty(shape = (len(allFiles), NUM_FEATURES), dtype = 'float64')
 
     for i in range(len(allFiles)):
         features = getOneExampleXFromFile(dirPath + '/' + allFiles[i], thresh)
