@@ -29,7 +29,7 @@ Input: settingsFile, a file formatted according to the documentation in main.py,
 
 
 '''
-#TODO: needs to not be interactive (interactive parts will be eliminated when we get buttons and LEDs) 
+
 def mainSettingsFromFile(settingsFile):
 
     UI.removePredictionOnLED()
@@ -70,8 +70,6 @@ def mainSettingsFromFile(settingsFile):
            # make the time series smoother
            t = SignalProcess.rollingAverage(t, 10)
            series = SignalProcess.rollingAverage(series, 10)
-           #TODO: remove plotting bug-no bug indication is done with LEDs
-           UI.plotResFreqs(t, series)
 
            settingsObj = SettingsDataReader.SettingsDataReader(settingsPath=settingsPath)
            thresh = settingsObj.getThresh()
@@ -82,12 +80,10 @@ def mainSettingsFromFile(settingsFile):
            #pred can either be 1 (bug) or 0 (no bug)
            print pred
 
-           #TODO: when changing to indication with LEDs, modify showPrediction from the UI file
            UI.changeProgressLEDState(state= False)
            UI.showPrediction(pred[0])
            UI.showPredictionOnLED(pred[0])
 
-           #TODO: when changing to indication of taking a measuremnet using a button, change requestNextKernel from the UI file
            UI.waitForButtonPress()
            UI.removePredictionOnLED()
            UI.waitForButtonPress()

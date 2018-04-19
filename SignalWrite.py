@@ -7,11 +7,6 @@ import SignalRead
 import json
 import gc
 
-
-
-
-
-
 '''
 Function: writeSignal
 Purpose : sends a commandline command to write to a file a number of samples
@@ -82,7 +77,6 @@ def spaceEfficientSignalToSeries(currIQFile, currSeriesFile, sampleRate, timeSig
 
     series = SignalProcess.rollingAverage(series, 10)
     t = SignalProcess.rollingAverage(t, 10)
-    #UI.plotResFreqs(t, series)
     del spec
     del freqList
     gc.collect()
@@ -306,12 +300,7 @@ Files Written : The number of files written will be : number of specified exampl
 def mainUserPrompts():
     UI.writeWelcome()
     iqDirPath, seriesDirPath, sampleRate, timeSignal, gain, numBug, numNoBug= UI.requestVarsOFSignalWriting()
-    #prompt on bug no bug frequencies
-
-    # defining our classification labels
     labelsTypes = ['clean_', 'bug_']
-
-    #get raw iq data recorded into iqDirPath
     bugCenterFreq = 0
     noBugCenterFreq = 0
     if(numBug > 0):

@@ -8,30 +8,35 @@ import copy
 from sklearn.svm import SVC
 from random import randint
 import pickle
-# import featurePlot
 from sklearn import preprocessing
 from pathlib2 import Path
 from collections import Counter
 import json
 import yaml
-'''
-A 'file' here normally refers to a file with two columns : time and the corresponding series recordings
-X is defined as a series' features 
-Y is defined as a label or class (bug/no bug)
-'''
+
 
 NUM_FEATURES =2
 
+'''
+Function: calculateThresh
 
+Purpose : to calculate a threshold based on series from clean examples. The threshold is the average difference between
+          a clean example's series' min and max.
+
+Input   : seriesDirPath, string, path to the directory containing series files
+          threshCalcFiles, list of strings, all names of files that contain series reserved for threshold calculation
+          saveThresh, boolean, optional parameter useful for saving the threshold in a file that can be used later
+
+Output  : thresh, float, the caluculated threshold as described in the purpose
+
+'''
 def calculateThresh(seriesDirPath, threshCalcFiles, saveThresh = True):
-
-    #allFiles = os.listdir(seriesDirPath)
     count = 0
     total = 0
     for i in range(len(threshCalcFiles)):
         if ('clean' in threshCalcFiles[i]):
             count += 1
-            series = getSeriesFromFile(seriesDirPath + '/' + threshCalcFiles[i])
+            series = SignalRead.extractSeriesOnly(seriesDirPath + '/' + threshCalcFiles[i])
             total += max(series) - min(series)
     thresh = total / count
 
@@ -57,16 +62,23 @@ def calculateThresh(seriesDirPath, threshCalcFiles, saveThresh = True):
     return thresh
 
 
-# def testThreshFunc():
-#     seriesDirPath ='/home/esraa/PycharmProjects/radioSignalPestDet/BugDetectorProgram/seriesExcamplesThreshTest'
-#     thresh = getThresh(seriesDirPath)
+
+#def getSeriesFromFile(inFile):
+#    _, series = SignalRead.extractSeriesFromFile(inFile)
+#    return series
 
 
+'''
+Function: getFeaturesFromSeries
 
-def getSeriesFromFile(inFile):
-    _, series = SignalRead.extractSeriesFromFile(inFile)
-    return series
+Purpose : to calculate features based on a given series
 
+Input   : series, list or array of floats, a sequence of values where each is expected to be frequency 
+          thresh, float, a threshold that will be used in calculating the score feature
+
+Output  : features, numpy array, all the features that were calulated on the given series
+
+'''
 def getFeaturesFromSeries(series, thresh):
 
     features = np.empty(NUM_FEATURES, dtype='float64')
@@ -75,16 +87,50 @@ def getFeaturesFromSeries(series, thresh):
     features[1] = scoreSeries(series, 100, thresh)
     return features
 
+'''
+Function: getOneExampleFromFile
+
+Purpose : given a file that has a time series, this function obtains features calculated based on that time series
+
+Input   : inFile, string, name of file containing the series from which features will be extracted
+          thresh, float, threshold as calculated by the function: calculateThresh
+
+Output  : features, numpy array, sequence of all features needed to describe an example
+
+'''
+
 def getOneExampleXFromFile(inFile, thresh):
-    series = getSeriesFromFile(inFile)
+    series = SignalRead.extractSeriesOnly(inFile)
     print inFile
     features = getFeaturesFromSeries(series, thresh)
     return features
 
 
+'''
+Function: getAllLabelsFromFiles
+
+Purpose : to obtain numerical  labels from a list of file names assuming the file names were representative
+          of the class that
+
+Input   : inFilesList, list or array of strings, sequence of strings each bieng a file name 
+          labelTypes, list or array of strings, sequence of strings each bieng a keyword for a 
+          certain class that is expectd to appear in the given file list
+
+Output  : list of ints, sequence of numercial labels that is parallel to inFilesList such that each element
+          of inFilesList corresponds the numerical label at the same index. Each label indicates the classs that
+          a file belongs to
+
+'''
+
 def getAllLabelsFromFiles(inFilesList, labelTypes):
     return SignalRead.extractSpecNumLabelsFromFiles(inFilesList, labelTypes)
 
+
+
+'''
+
+
+'''
 
 def getXYFromFiles(thresh, dirPath, allFiles, labelTypes):
     X = np.empty(shape=(len(allFiles), NUM_FEATURES), dtype='float64')
@@ -112,8 +158,6 @@ def scoreSeries(series, numCols, thresh, distFactor = 1e5):
         exit(1)
 
     score = 0
-    # thresh = 3.1e-05
-    # medianDistClean = 2.64509999999e-05
     lenSubSeries = (len(series))//(numCols)
     for i in range(0, numCols, lenSubSeries):
         dist = max(series[i: i+lenSubSeries]) - min(series[i: i+ lenSubSeries])
@@ -159,7 +203,7 @@ def getClassFrequencies(Y, classesInNums):
     return freqsMap
 
 def applyAdditionalMapping(lowerNumToWordMap, higherNumToWordMap, Y):
-    #Y has nums corresponding to distinct file types
+    # Y has nums corresponding to distinct file types
     # firstMap maps a number to a word label
     # second map will map that word to a new number (usually for grouping categories)
     map2WordLabels = set(higherNumToWordMap.keys())
@@ -308,6 +352,20 @@ def crossValSVMModel(dataDirPath, crossValFiles, threshCalcFiles, wordLabelTypes
     return acc, accClasses, misClassedFiles
 
 
+'''
+Function : tempTestModel
+
+Purpose  : This function was made to be run when the actual bugs in wheat dataset is being used (the one
+           from Alex Reimer). It deals with the different naming convention. This is not needed when the model is 
+           being trained on the dataset generated by the Bug Detector program. 
+
+Input    : N/A
+
+Output   : N/A
+
+Print output: prints the overall accuracy, accuracy for each class, and all the misclassified files
+
+'''
 def tempTestModel():
     # dataDirPath = '/home/esraa/PycharmProjects/radioSignalPestDet/bug_no_bug_examples'
     # dataDirPath = '/home/esraa/PycharmProjects/radioSignalPestDet/bandSelection/seriesFiles'
